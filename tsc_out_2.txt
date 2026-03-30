@@ -1,0 +1,19 @@
+﻿app/auth/login/page.tsx(29,8): error TS2307: Cannot find module '@/components/ui/form' or its corresponding type declarations.
+app/auth/login/page.tsx(116,28): error TS7031: Binding element 'field' implicitly has an 'any' type.
+app/auth/login/page.tsx(133,28): error TS7031: Binding element 'field' implicitly has an 'any' type.
+app/auth/register/student/page.tsx(29,8): error TS2307: Cannot find module '@/components/ui/form' or its corresponding type declarations.
+app/auth/register/student/page.tsx(57,5): error TS2322: Type 'Resolver<{ name: string; age: unknown; grade: string; mobile: string; email: string; password: string; language: string; }, any, { name: string; age: number; grade: string; mobile: string; email: string; password: string; language: string; }>' is not assignable to type 'Resolver<{ name: string; age: number; grade: string; mobile: string; email: string; password: string; language: string; }, any, { name: string; age: number; grade: string; mobile: string; email: string; password: string; language: string; }>'.
+  Types of parameters 'options' and 'options' are incompatible.
+    Type 'ResolverOptions<{ name: string; age: number; grade: string; mobile: string; email: string; password: string; language: string; }>' is not assignable to type 'ResolverOptions<{ name: string; age: unknown; grade: string; mobile: string; email: string; password: string; language: string; }>'.
+      Type 'unknown' is not assignable to type 'number'.
+app/auth/register/student/page.tsx(130,47): error TS2345: Argument of type '(data: { name: string; age: number; grade: string; mobile: string; email: string; password: string; language: string; }) => Promise<void>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type '{ name: string; age: number; grade: string; mobile: string; email: string; password: string; language: string; }'.
+      Type 'FieldValues' is missing the following properties from type '{ name: string; age: number; grade: string; mobile: string; email: string; password: string; language: string; }': name, age, grade, mobile, and 3 more.
+app/auth/register/student/page.tsx(135,30): error TS7031: Binding element 'field' implicitly has an 'any' type.
+app/auth/register/student/page.tsx(148,30): error TS7031: Binding element 'field' implicitly has an 'any' type.
+app/auth/register/student/page.tsx(164,30): error TS7031: Binding element 'field' implicitly has an 'any' type.
+app/auth/register/student/page.tsx(188,30): error TS7031: Binding element 'field' implicitly has an 'any' type.
+app/auth/register/student/page.tsx(216,30): error TS7031: Binding element 'field' implicitly has an 'any' type.
+app/auth/register/student/page.tsx(229,30): error TS7031: Binding element 'field' implicitly has an 'any' type.
+app/auth/register/student/page.tsx(244,28): error TS7031: Binding element 'field' implicitly has an 'any' type.

@@ -1,0 +1,12 @@
+﻿app/auth/register/student/page.tsx(152,26): error TS2322: Type '{ onChange: (...event: any[]) => void; onBlur: Noop; value: unknown; disabled?: boolean | undefined; name: "age"; ref: RefCallBack; type: "number"; }' is not assignable to type 'InputHTMLAttributes<HTMLInputElement>'.
+  Types of property 'value' are incompatible.
+    Type 'unknown' is not assignable to type 'string | number | readonly string[] | undefined'.
+app/dashboard/volunteer/page.tsx(44,12): error TS2367: This comparison appears to be unintentional because the types '"active" | "inactive" | undefined' and '"verified"' have no overlap.
+app/dashboard/volunteer/page.tsx(65,82): error TS2339: Property 'maxStudents' does not exist on type 'Volunteer'.
+app/onboarding/student/page.tsx(31,19): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: readonly ["slow", "medium", "fast"], params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; }'.
+  Overload 2 of 2, '(entries: Readonly<Record<string, EnumValue>>, params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Argument of type 'string[]' is not assignable to parameter of type 'Readonly<Record<string, EnumValue>>'.
+      Index signature for type 'string' is missing in type 'string[]'.
+next.config.ts(5,5): error TS2353: Object literal may only specify known properties, and 'turbopack' does not exist in type 'ExperimentalConfig'.

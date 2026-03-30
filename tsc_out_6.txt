@@ -1,0 +1,3 @@
+﻿app/auth/register/volunteer/page.tsx(104,9): error TS2322: Type 'DocumentReference<any, DocumentData>' is not assignable to type 'string'.
+app/auth/register/volunteer/page.tsx(319,12): error TS2304: Cannot find name 'CardFooter'.
+app/auth/register/volunteer/page.tsx(323,13): error TS2304: Cannot find name 'CardFooter'.
