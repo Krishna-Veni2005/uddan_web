@@ -5,52 +5,46 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, ShieldCheck, Mail, Phone, BookOpen, Clock, FileText, CheckCircle2, XCircle } from "lucide-react";
+import { Search, Filter, ShieldCheck, Mail, Phone, BookOpen, Clock, FileText, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-
-// Complex UI Mocks reflecting types/index.ts VolunteerApplication
-const PENDING_APPS = [
-  {
-    applicationId: "APP-9021",
-    submittedAt: "2 hours ago",
-    status: "pending",
-    personalInfo: { fullName: "Aarav Mehta", email: "aarav.m@college.edu", mobile: "+91 9876543210", state: "Maharashtra" },
-    qualification: { status: "student", highestQualification: "B.Tech Computer Science 3rd Year" },
-    deliveryType: "academic",
-    academic: { subjects: ["Mathematics", "Physics"], grades: ["High School (9-10)"] },
-    availability: { hoursPerWeek: "5", mode: "online" },
-    verification: { idUploaded: "drive.google.com/verify/aarav_id.pdf", linkedin: "linkedin.com/in/aaravm" }
-  },
-  {
-    applicationId: "APP-9022",
-    submittedAt: "5 hours ago",
-    status: "pending",
-    personalInfo: { fullName: "Priya Rajan", email: "priya.r@workspace.com", mobile: "+91 9988776655", state: "Delhi" },
-    qualification: { status: "professional", highestQualification: "M.A. English Literature" },
-    deliveryType: "both",
-    academic: { subjects: ["English", "History"], grades: ["Middle School (6-8)"] },
-    availability: { hoursPerWeek: "8", mode: "offline", locality: "South Delhi" },
-    verification: { idUploaded: "ID_Aadhaar_9821.jpg", linkedin: "linkedin.com/in/priyarajan" }
-  }
-];
+import { useEffect } from "react";
+import { subscribeToCollection, updateDocument } from "@/lib/firestore";
+import { where } from "firebase/firestore";
 
 export default function VerificationEnginePage() {
-  const [apps, setApps] = useState(PENDING_APPS);
+  const [apps, setApps] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const handleAction = (id: string, action: "approve" | "reject") => {
-    // Optimistic UI Removal
-    setApps(apps.filter(app => app.applicationId !== id));
+  useEffect(() => {
+    const unsubscribe = subscribeToCollection(
+      "volunteer_applications",
+      (data) => {
+        setApps(data);
+        setLoading(false);
+      },
+      where("status", "==", "pending")
+    );
+    return () => unsubscribe();
+  }, []);
 
-    if (action === "approve") {
-      // Natively this would run: updateDoc("volunteerApplications"), updateDoc("volunteers")
-      toast.success(`Application ${id} securely Approved! Mentor Dashboard Unlocked.`, { duration: 4000 });
-    } else {
-      toast.error(`Application ${id} Rejected. User wiped safely.`, { duration: 4000 });
+  const handleAction = async (appId: string, uid: string, action: "approve" | "reject") => {
+    try {
+      if (action === "approve") {
+        await updateDocument("volunteer_applications", appId, { status: "approved" });
+        await updateDocument("users", uid, { status: "active", approvedAt: new Date().toISOString() });
+        toast.success(`Application Approved! Mentor Dashboard Unlocked.`, { duration: 4000 });
+      } else {
+        await updateDocument("volunteer_applications", appId, { status: "rejected" });
+        await updateDocument("users", uid, { status: "rejected" });
+        toast.error(`Application Rejected.`, { duration: 4000 });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Action failed");
     }
   };
 
-  const filtered = apps.filter(app => app.personalInfo.fullName.toLowerCase().includes(search.toLowerCase()));
+  const filtered = apps.filter(app => app.personalInfo?.fullName?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -70,7 +64,14 @@ export default function VerificationEnginePage() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <Card className="border-dashed shadow-none bg-slate-50">
+          <CardContent className="flex flex-col items-center justify-center p-12 text-center text-slate-500">
+            <Loader2 className="w-8 h-8 animate-spin mb-4" />
+            <p>Loading pending applications...</p>
+          </CardContent>
+        </Card>
+      ) : filtered.length === 0 ? (
         <Card className="border-dashed shadow-none bg-slate-50">
           <CardContent className="flex flex-col items-center justify-center p-12 text-center">
             <ShieldCheck className="w-12 h-12 text-emerald-400 mb-4" />
@@ -83,26 +84,26 @@ export default function VerificationEnginePage() {
       ) : (
         <div className="space-y-6">
           {filtered.map(app => (
-            <Card key={app.applicationId} className="shadow-sm border-slate-200 overflow-hidden">
+            <Card key={app.id} className="shadow-sm border-slate-200 overflow-hidden">
                {/* Quick Info Header */}
                <div className="bg-slate-50/80 border-b border-slate-200 p-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                  <div className="flex items-center gap-4 w-full sm:w-auto">
                     <div className="w-12 h-12 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-lg shadow-sm border border-primary/20 shrink-0">
-                      {app.personalInfo.fullName.charAt(0)}
+                      {app.personalInfo?.fullName?.charAt(0) || "?"}
                     </div>
                     <div>
                       <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                        {app.personalInfo.fullName} 
-                        <Badge variant="outline" className="text-xs bg-white text-slate-600 capitalize">{app.qualification.status}</Badge>
+                        {app.personalInfo?.fullName || "Unknown"} 
+                        <Badge variant="outline" className="text-xs bg-white text-slate-600 capitalize">{app.qualification?.status || "Unknown"}</Badge>
                       </h3>
-                      <p className="text-xs text-slate-500 font-medium">{app.applicationId} • Submitted {app.submittedAt}</p>
+                      <p className="text-xs text-slate-500 font-medium">{app.id} • Submitted {new Date(app.submittedAt).toLocaleDateString()}</p>
                     </div>
                  </div>
                  <div className="flex gap-2 w-full sm:w-auto">
-                    <Button onClick={() => handleAction(app.applicationId, "reject")} variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700 flex-1 sm:flex-auto">
+                    <Button onClick={() => handleAction(app.id, app.uid, "reject")} variant="outline" className="text-red-600 hover:bg-red-50 hover:text-red-700 flex-1 sm:flex-auto">
                       <XCircle className="w-4 h-4 mr-1.5" /> Reject
                     </Button>
-                    <Button onClick={() => handleAction(app.applicationId, "approve")} className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1 sm:flex-auto">
+                    <Button onClick={() => handleAction(app.id, app.uid, "approve")} className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1 sm:flex-auto">
                       <CheckCircle2 className="w-4 h-4 mr-1.5" /> Approve Trust
                     </Button>
                  </div>
@@ -116,15 +117,15 @@ export default function VerificationEnginePage() {
                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b pb-2"><ShieldCheck className="w-4 h-4 text-slate-400" /> Identity Data</h4>
                      <ul className="space-y-3 text-sm">
                        <li className="flex gap-2">
-                         <Mail className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="text-slate-700 truncate">{app.personalInfo.email}</span>
+                         <Mail className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="text-slate-700 truncate">{app.personalInfo?.email}</span>
                        </li>
                        <li className="flex gap-2">
-                         <Phone className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="text-slate-700">{app.personalInfo.mobile}</span>
+                         <Phone className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="text-slate-700">{app.personalInfo?.mobile}</span>
                        </li>
                        <li className="flex flex-col gap-1.5 mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
                          <span className="text-xs font-bold text-amber-800">Provided ID Document:</span>
                          <a href="#" className="flex items-center gap-1 text-primary hover:underline font-medium break-all">
-                           <FileText className="w-3.5 h-3.5" /> {app.verification.idUploaded}
+                           <FileText className="w-3.5 h-3.5" /> {app.verification?.idProof || app.verification?.idUploaded || "N/A"}
                          </a>
                        </li>
                      </ul>
@@ -136,17 +137,17 @@ export default function VerificationEnginePage() {
                      <div className="space-y-3">
                         <div>
                           <p className="text-xs text-slate-500 font-medium">Highest Degree</p>
-                          <p className="text-sm font-semibold text-slate-900 mt-0.5">{app.qualification.highestQualification}</p>
+                          <p className="text-sm font-semibold text-slate-900 mt-0.5">{app.qualification?.highestQualification}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 font-medium mt-2">Target Subjects</p>
+                          <p className="text-xs text-slate-500 font-medium mt-2">Target Subjects & Skills</p>
                           <div className="flex flex-wrap gap-1.5 mt-1.5">
-                            {app.academic.subjects.map(s => <Badge key={s} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">{s}</Badge>)}
+                            {(app.academic?.subjects || app.skills?.skills || []).map((s: string) => <Badge key={s} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">{s}</Badge>)}
                           </div>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 font-medium mt-2">Target Grades</p>
-                          <p className="text-sm text-slate-700 mt-0.5">{app.academic.grades.join(", ")}</p>
+                          <p className="text-xs text-slate-500 font-medium mt-2">Target Grades / Format</p>
+                          <p className="text-sm text-slate-700 mt-0.5">{(app.academic?.grades || []).join(", ")} {app.skills?.format || ""}</p>
                         </div>
                      </div>
                   </div>
@@ -157,12 +158,12 @@ export default function VerificationEnginePage() {
                      <div className="space-y-3">
                         <div>
                           <p className="text-xs text-slate-500 font-medium">Pledged Hours / Week</p>
-                          <p className="text-2xl font-black text-slate-900 mt-0.5">{app.availability.hoursPerWeek}<span className="text-sm font-normal text-slate-500 ml-1">hr</span></p>
+                          <p className="text-2xl font-black text-slate-900 mt-0.5">{app.availability?.hoursPerWeek}</p>
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 font-medium mt-2">Delivery Mode</p>
-                          <Badge variant="outline" className="mt-1 uppercase tracking-widest text-[10px]">{app.availability.mode}</Badge>
-                          {app.availability.locality && <p className="text-xs text-slate-600 mt-1">{app.availability.locality}</p>}
+                          <Badge variant="outline" className="mt-1 uppercase tracking-widest text-[10px]">{app.availability?.mode}</Badge>
+                          {app.availability?.locality && <p className="text-xs text-slate-600 mt-1">{app.availability.locality}</p>}
                         </div>
                      </div>
                   </div>

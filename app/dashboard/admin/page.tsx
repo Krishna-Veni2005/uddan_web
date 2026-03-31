@@ -4,32 +4,67 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Users, FileQuestion, Activity, ShieldAlert, GraduationCap, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { collection, query, where, getCountFromServer } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function AdminDashboardPage() {
+  const [stats, setStats] = useState({ students: 0, volunteers: 0, pendingApps: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const studentQuery = query(collection(db, "users"), where("role", "==", "student"));
+        const volQuery = query(collection(db, "users"), where("role", "==", "volunteer"), where("status", "==", "active"));
+        const pendingQuery = query(collection(db, "volunteer_applications"), where("status", "==", "pending"));
+
+        const [stSnap, volSnap, appSnap] = await Promise.all([
+          getCountFromServer(studentQuery),
+          getCountFromServer(volQuery),
+          getCountFromServer(pendingQuery)
+        ]);
+
+        setStats({
+          students: stSnap.data().count,
+          volunteers: volSnap.data().count,
+          pendingApps: appSnap.data().count,
+        });
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStats();
+  }, []);
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-           <ShieldCheck className="w-8 h-8 text-primary" /> Admin Control Center
+           <ShieldCheck className="w-8 h-8 text-primary" /> NGO Dashboard
         </h1>
-        <p className="text-slate-500 mt-1">Platform overview, verification pipeline, and system health.</p>
+        <p className="text-slate-500 mt-1">Platform overview, volunteer verification pipeline, and system health.</p>
       </div>
 
       {/* CORE ALERTS */}
-      <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-         <div className="flex items-start sm:items-center gap-3">
-           <div className="bg-red-100 p-2 rounded-lg shrink-0 mt-0.5 sm:mt-0">
-             <ShieldAlert className="w-5 h-5 text-red-600" />
+      {stats.pendingApps > 0 && (
+        <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+           <div className="flex items-start sm:items-center gap-3">
+             <div className="bg-red-100 p-2 rounded-lg shrink-0 mt-0.5 sm:mt-0">
+               <ShieldAlert className="w-5 h-5 text-red-600" />
+             </div>
+             <div>
+               <h3 className="text-red-900 font-bold text-sm">Action Required: {stats.pendingApps} Pending Verification{stats.pendingApps === 1 ? '' : 's'}</h3>
+               <p className="text-red-700 text-xs mt-0.5">New mentor applications require your manual review before they can start volunteering.</p>
+             </div>
            </div>
-           <div>
-             <h3 className="text-red-900 font-bold text-sm">Action Required: 12 Pending Verifications</h3>
-             <p className="text-red-700 text-xs mt-0.5">New mentor applications require your manual review to unlock their dashboards.</p>
-           </div>
-         </div>
-         <Link href="/dashboard/admin/applications" className="shrink-0 w-full sm:w-auto">
-           <Button variant="outline" size="sm" className="w-full bg-white text-red-700 border-red-200 hover:bg-red-50">Review Now</Button>
-         </Link>
-      </div>
+           <Link href="/dashboard/admin/applications" className="shrink-0 w-full sm:w-auto">
+             <Button variant="outline" size="sm" className="w-full bg-white text-red-700 border-red-200 hover:bg-red-50">Review Now</Button>
+           </Link>
+        </div>
+      )}
 
       {/* SYSTEM METRICS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -39,22 +74,22 @@ export default function AdminDashboardPage() {
             <GraduationCap className="w-4 h-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-slate-900">1,204</div>
+            <div className="text-3xl font-black text-slate-900">{loading ? '-' : stats.students}</div>
             <p className="text-xs text-emerald-600 flex items-center mt-1 font-medium">
-              <ArrowUpRight className="w-3 h-3 mr-0.5" /> +12% this month
+              Live from Database
             </p>
           </CardContent>
         </Card>
 
         <Card className="shadow-sm border-slate-200">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Active Mentors</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Active Volunteers</CardTitle>
             <Users className="w-4 h-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-slate-900">432</div>
+            <div className="text-3xl font-black text-slate-900">{loading ? '-' : stats.volunteers}</div>
             <p className="text-xs text-emerald-600 flex items-center mt-1 font-medium">
-              <ArrowUpRight className="w-3 h-3 mr-0.5" /> +5% this month
+              Fully Approved
             </p>
           </CardContent>
         </Card>
@@ -65,19 +100,19 @@ export default function AdminDashboardPage() {
             <FileQuestion className="w-4 h-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-amber-600">12</div>
+            <div className="text-3xl font-black text-amber-600">{loading ? '-' : stats.pendingApps}</div>
             <p className="text-xs text-slate-500 mt-1">Awaiting ID Verification</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-200">
+        <Card className="shadow-sm border-slate-200 opacity-50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Ongoing Sessions</CardTitle>
             <Activity className="w-4 h-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-slate-900">89</div>
-            <p className="text-xs text-slate-500 mt-1">Active right now</p>
+            <div className="text-3xl font-black text-slate-900">0</div>
+            <p className="text-xs text-slate-500 mt-1">Coming Soon</p>
           </CardContent>
         </Card>
       </div>
@@ -109,7 +144,7 @@ export default function AdminDashboardPage() {
         {/* Quick Links */}
         <Card className="shadow-sm border-slate-200">
           <CardHeader>
-            <CardTitle>Administration Tools</CardTitle>
+            <CardTitle>NGO Tools</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
              <Link href="/dashboard/admin/applications" className="group">

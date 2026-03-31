@@ -41,17 +41,17 @@ const volunteerLinks: SidebarLink[] = [
   { name: "Settings", href: "/dashboard/volunteer/settings", icon: Settings },
 ];
 
-const adminLinks: SidebarLink[] = [
-  { name: "Overview", href: "/dashboard/admin", icon: LayoutDashboard },
-  { name: "Students", href: "/dashboard/admin/students", icon: Users },
-  { name: "Volunteers", href: "/dashboard/admin/volunteers", icon: Users },
-  { name: "Assignments", href: "/dashboard/admin/assignments", icon: ClipboardList },
+const ngoLinks: SidebarLink[] = [
+  { name: "NGO Overview", href: "/dashboard/admin", icon: LayoutDashboard },
+  { name: "Students Directory", href: "/dashboard/admin/students", icon: Users },
+  { name: "Volunteers Directory", href: "/dashboard/admin/volunteers", icon: Users },
+  { name: "Pending Applications", href: "/dashboard/admin/applications", icon: ClipboardList },
   { name: "Workshops", href: "/dashboard/admin/workshops", icon: Presentation },
-  { name: "Analytics", href: "/dashboard/admin/analytics", icon: TrendingUp },
-  { name: "At-Risk", href: "/dashboard/admin/at-risk", icon: Activity },
+  { name: "Platform Analytics", href: "/dashboard/admin/analytics", icon: TrendingUp },
+  { name: "At-Risk Monitor", href: "/dashboard/admin/at-risk", icon: Activity },
   { name: "Call Logs", href: "/dashboard/admin/call-logs", icon: Phone },
-  { name: "Reports", href: "/dashboard/admin/reports", icon: FileText },
-  { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
+  { name: "Impact Reports", href: "/dashboard/admin/reports", icon: FileText },
+  { name: "NGO Settings", href: "/dashboard/admin/settings", icon: Settings },
 ];
 
 export default function DashboardLayout({
@@ -83,7 +83,7 @@ export default function DashboardLayout({
     }
   };
 
-  const navLinks = role === "admin" ? adminLinks : role === "volunteer" ? volunteerLinks : studentLinks;
+  const navLinks = role === "admin" ? ngoLinks : role === "volunteer" ? volunteerLinks : studentLinks;
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
