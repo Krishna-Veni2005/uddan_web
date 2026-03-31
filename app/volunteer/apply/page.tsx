@@ -155,7 +155,7 @@ export default function VolunteerApplyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const methods = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     mode: "onChange",
     defaultValues: {
       step1: { gender: "Male", languages: [] },
