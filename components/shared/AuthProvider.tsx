@@ -8,7 +8,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { User } from "@/types";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setUser, setIsLoading } = useAppStore();
+  const { setCurrentUser, setIsLoadingMetadata } = useAppStore();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -17,24 +17,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fetch additional user details from Firestore
           const userData = await getDocument<User>("users", firebaseUser.uid);
           if (userData) {
-            setUser(userData);
+            setCurrentUser(userData);
           } else {
             // If they are in firebase auth but not our users collection, 
             // set them up anyway, or let the sign-up flow handle it.
-            setUser(null); 
+            setCurrentUser(null); 
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
-          setUser(null);
+          setCurrentUser(null);
         }
       } else {
-        setUser(null);
+        setCurrentUser(null);
       }
-      setIsLoading(false);
+      setIsLoadingMetadata(false);
     });
 
     return () => unsubscribe();
-  }, [setUser, setIsLoading]);
+  }, [setCurrentUser, setIsLoadingMetadata]);
 
   return <>{children}</>;
 }

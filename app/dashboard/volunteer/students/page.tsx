@@ -1,105 +1,113 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { getDocument, getDocuments } from "@/lib/firestore";
+import { auth } from "@/lib/firebase";
+import { Volunteer, Student } from "@/types";
+import { documentId, where } from "firebase/firestore";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, MoreVertical, Calendar, Mail, Phone, ExternalLink } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { BookOpen, MapPin, CheckCircle2, UserCircle, Star, MessageSquare } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
-// Dummy Data
-const MOCK_STUDENTS = [
-  { id: "S-101", name: "Rahul Sharma", grade: "10th Grade", primarySubject: "Mathematics", nextSession: "Tomorrow, 4:00 PM", status: "on-track", progress: 75 },
-  { id: "S-102", name: "Priya Patel", grade: "8th Grade", primarySubject: "Science", nextSession: "Friday, 5:30 PM", status: "needs-attention", progress: 40 },
-  { id: "S-103", name: "Amit Kumar", grade: "12th Grade", primarySubject: "English", nextSession: "Saturday, 10:00 AM", status: "on-track", progress: 90 },
-];
+export default function VolunteerStudentsPage() {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function MyStudentsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+  useEffect(() => {
+    async function fetchStudents() {
+      if (!auth.currentUser) return;
+      try {
+        const doc = await getDocument<Volunteer>("users", auth.currentUser.uid);
+        if (doc && doc.studentsAssigned && doc.studentsAssigned.length > 0) {
+           const studentDocs = await getDocuments<Student>(
+             "users", 
+             where("role", "==", "student"),
+             where(documentId(), "in", doc.studentsAssigned)
+           );
+           setStudents(studentDocs);
+        }
+      } catch (e) {
+        console.error("Error fetching students:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStudents();
+  }, []);
 
-  const filtered = MOCK_STUDENTS.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.primarySubject.toLowerCase().includes(searchQuery.toLowerCase()));
+  if (loading) {
+    return <div className="text-center mt-10 text-slate-500 animate-pulse">Loading students...</div>;
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto pb-10">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">My Students</h1>
-        <p className="text-slate-500 mt-1">Manage all your active mentorships and upcoming lesson plans.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Students</h1>
+        <p className="text-slate-500 mt-2">Manage the students assigned to you and track their progress.</p>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-          <Input 
-            placeholder="Search students by name or subject..." 
-            className="pl-9 bg-white" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <Button className="shrink-0 bg-primary">Schedule New Session</Button>
-      </div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        {students.map((student) => (
+          <Card key={student.uid} className="border-slate-200 shadow-sm hover:border-primary/20 transition-colors">
+            <CardHeader className="pb-4">
+               <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 font-bold text-xl uppercase">
+                        {student.name ? student.name.charAt(0) : <UserCircle className="w-8 h-8" />}
+                     </div>
+                     <div>
+                        <CardTitle className="text-lg">{student.name}</CardTitle>
+                        <CardDescription className="flex items-center gap-1.5 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                           <GraduationCap Icon={false} /> {student.grade || 'N/A'} • <MapPin className="w-3.5 h-3.5 ml-1" /> {student.learningPace || 'N/A'}
+                        </CardDescription>
+                     </div>
+                  </div>
+                  <Badge variant={student.status === "on-track" ? "default" : "destructive"} className={student.status === "on-track" ? "bg-emerald-500" : ""}>
+                     {student.status || "unassigned"}
+                  </Badge>
+               </div>
+            </CardHeader>
+            <CardContent>
+               <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
+                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Subjects</h4>
+                     <p className="text-sm font-bold text-slate-800 flex items-center justify-center gap-1.5 line-clamp-1 h-[28px]"><BookOpen className="w-4 h-4 text-primary shrink-0" />{student.subjects?.join(', ') || 'Various'}</p>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
+                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Sessions</h4>
+                     <p className="text-lg font-bold text-slate-800 flex items-center justify-center gap-1.5 h-[28px]"><CheckCircle2 className="w-4 h-4 text-primary" />{student.streak || 0} Streak</p>
+                  </div>
+               </div>
 
-      {filtered.length === 0 ? (
-        <Card className="border-dashed shadow-none">
-          <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-            <Calendar className="w-12 h-12 text-slate-300 mb-4" />
-            <h3 className="text-lg font-medium text-slate-900">No students found</h3>
-            <p className="text-sm text-slate-500 max-w-sm mt-1">
-              Your search didn't match any active students. Try adjusting your filters.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map(student => (
-            <Card key={student.id} className="shadow-sm hover:shadow-md transition-shadow border-slate-200">
-              <CardHeader className="pb-3 flex flex-row items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 border border-slate-200">
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {student.name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle className="text-base">{student.name}</CardTitle>
-                    <CardDescription className="text-xs">{student.grade} • {student.primarySubject}</CardDescription>
+               <div className="mb-6">
+                  <div className="flex justify-between items-end mb-2">
+                     <span className="font-semibold text-slate-700 text-sm">Course Completion</span>
+                     <span className="text-sm font-bold text-slate-900">{student.progressScore || 0}%</span>
                   </div>
-                </div>
-                <Button variant="ghost" size="icon" className="-mt-2 -mr-2 h-8 w-8 text-slate-400">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">Curriculum Progress</span>
-                    <span className="font-medium text-slate-900">{student.progress}%</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-1.5 border border-slate-200">
-                    <div 
-                      className={`h-1.5 rounded-full ${student.status === 'needs-attention' ? 'bg-amber-500' : 'bg-primary'}`} 
-                      style={{ width: `${student.progress}%` }}
-                    />
-                  </div>
-                  <div className="pt-2 flex items-center gap-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-md">
-                    <Calendar className="w-3.5 h-3.5 text-primary" /> 
-                    <span className="font-semibold text-slate-900">Next Session:</span> {student.nextSession}
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0 flex gap-2">
-                <Button variant="outline" className="w-full text-xs h-8">
-                  <Mail className="w-3.5 h-3.5 mr-1" /> Message
-                </Button>
-                <Button variant="outline" className="w-full text-xs h-8">
-                  <ExternalLink className="w-3.5 h-3.5 mr-1" /> View Profile
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                  <Progress value={student.progressScore || 0} className="h-2" />
+               </div>
+
+               <div className="flex gap-3 mt-4">
+                 <Button className="w-full bg-primary hover:bg-primary/90"><MessageSquare className="w-4 h-4 mr-2" /> Message</Button>
+                 <Button variant="outline" className="w-full">Log Session</Button>
+               </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      {students.length === 0 && (
+         <div className="p-10 border border-dashed rounded-xl border-slate-300 text-center bg-slate-50">
+            <Star className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-slate-700">No students assigned yet</h3>
+            <p className="text-slate-500 mt-2">Wait for an admin to match you with a student request!</p>
+         </div>
       )}
     </div>
   );
 }
+
+// Helper icon
+function GraduationCap({Icon}:{Icon:boolean}) { return <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> }

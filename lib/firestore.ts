@@ -10,6 +10,12 @@ export const getDocument = async <T = DocumentData>(coll: string, id: string): P
   return null;
 };
 
+export const getDocuments = async <T = DocumentData>(coll: string, ...queryConstraints: any[]): Promise<T[]> => {
+  const q = query(collection(db, coll), ...queryConstraints);
+  const snap = await getDocs(q);
+  return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }) as T);
+};
+
 export const setDocument = async (coll: string, id: string, data: any) => {
   await setDoc(doc(db, coll, id), data, { merge: true });
 };

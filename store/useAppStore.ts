@@ -1,20 +1,24 @@
-import { create } from "zustand";
-import { User } from "@/types";
+import { create } from 'zustand';
+
+interface User {
+  uid: string;
+  name: string;
+  email: string;
+  role: 'student' | 'volunteer' | 'admin';
+  status?: string;
+  [key: string]: any;
+}
 
 interface AppState {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  isLoading: boolean;
-  setIsLoading: (isLoading: boolean) => void;
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
+  currentUser: User | null;
+  setCurrentUser: (user: User | null) => void;
+  isLoadingMetadata: boolean;
+  setIsLoadingMetadata: (loading: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  user: null,
-  setUser: (user) => set({ user }),
-  isLoading: true,
-  setIsLoading: (isLoading) => set({ isLoading }),
-  sidebarOpen: false,
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  currentUser: null,
+  setCurrentUser: (user) => set({ currentUser: user }),
+  isLoadingMetadata: true,
+  setIsLoadingMetadata: (loading) => set({ isLoadingMetadata: loading }),
 }));

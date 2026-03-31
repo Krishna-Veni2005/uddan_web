@@ -51,7 +51,7 @@ export default function LandingPage() {
                   I'm a Student <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link 
-                  href="/auth/register/volunteer" 
+                  href="/volunteer/apply" 
                   className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 hover:ring-accent hover:text-accent hover:-translate-y-0.5 transition-all duration-300"
                 >
                   Become a Volunteer <ArrowRight className="w-4 h-4" />

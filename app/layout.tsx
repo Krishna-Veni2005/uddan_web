@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+// Font import removed due to Next.js build fetch error. Using system default.
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/components/shared/AuthProvider";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+// Font definition removed
 
 export const metadata: Metadata = {
   title: "EduBridge - Peer-to-Peer Learning Platform",
@@ -20,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} min-h-full antialiased`}>
+    <html lang="en" className="min-h-full antialiased">
       <body className="font-sans min-h-screen flex flex-col bg-slate-50">
         <AuthProvider>
           {children}

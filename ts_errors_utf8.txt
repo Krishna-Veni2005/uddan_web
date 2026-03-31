@@ -1,0 +1,12 @@
+﻿app/dashboard/admin/students/page.tsx(95,11): error TS2304: Cannot find name 'CardFooter'.
+app/dashboard/admin/students/page.tsx(101,12): error TS2304: Cannot find name 'CardFooter'.
+app/dashboard/student/portfolio/page.tsx(109,23): error TS2552: Cannot find name 'Clock'. Did you mean 'Lock'?
+app/dashboard/volunteer/create-workshop/page.tsx(35,19): error TS2322: Type '{ children: Element; asChild: true; variant: "outline"; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; outline: string; secondary: string; ghost: string; destructive: string; link: string; }; size: { ...; }; }> & ClassProp) | undefined) => string>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; outline: string; secondary: string; ghost: string; destructive: string; link: string; }; size: { ...; }; }> & ClassProp) | undefined) => string>'.
+app/dashboard/volunteer/impact/page.tsx(114,100): error TS2304: Cannot find name 'Badge'.
+app/dashboard/volunteer/impact/page.tsx(114,164): error TS2304: Cannot find name 'Badge'.
+app/dashboard/volunteer/impact/page.tsx(124,101): error TS2304: Cannot find name 'Badge'.
+app/dashboard/volunteer/impact/page.tsx(124,161): error TS2304: Cannot find name 'Badge'.
+app/dashboard/volunteer/impact/page.tsx(131,26): error TS2304: Cannot find name 'Star'.
+app/dashboard/volunteer/workshops/page.tsx(22,17): error TS2322: Type '{ children: Element; asChild: true; className: string; }' is not assignable to type 'IntrinsicAttributes & ButtonProps & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; outline: string; secondary: string; ghost: string; destructive: string; link: string; }; size: { ...; }; }> & ClassProp) | undefined) => string>'.
+  Property 'asChild' does not exist on type 'IntrinsicAttributes & ButtonProps & VariantProps<(props?: (ConfigVariants<{ variant: { default: string; outline: string; secondary: string; ghost: string; destructive: string; link: string; }; size: { ...; }; }> & ClassProp) | undefined) => string>'.

@@ -1,30 +1,44 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDocument } from "@/lib/firestore";
+import { getDocument, getDocuments } from "@/lib/firestore";
 import { auth } from "@/lib/firebase";
-import { User, Volunteer } from "@/types";
+import { User, Volunteer, Student } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Users, Clock, FileText, Settings, BadgeCheck } from "lucide-react";
+import { Users, Clock, FileText, Settings, BadgeCheck, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { documentId, where } from "firebase/firestore";
 
 export default function VolunteerDashboardPage() {
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchProfile() {
+    async function fetchDashboardData() {
       if (!auth.currentUser) return;
       try {
-        const doc = await getDocument<Volunteer>("volunteers", auth.currentUser.uid);
-        if (doc) setVolunteer(doc);
+        const doc = await getDocument<Volunteer>("users", auth.currentUser.uid);
+        if (doc) {
+           setVolunteer(doc);
+           
+           if (doc.studentsAssigned && doc.studentsAssigned.length > 0) {
+              // Fetch students
+              const studentDocs = await getDocuments<Student>(
+                "users", 
+                where("role", "==", "student"),
+                where(documentId(), "in", doc.studentsAssigned)
+              );
+              setStudents(studentDocs);
+           }
+        }
       } catch (e) {
-        console.error("Error fetching volunteer profile", e);
+        console.error("Error fetching volunteer dashboard data:", e);
       } finally {
         setLoading(false);
       }
     }
-    fetchProfile();
+    fetchDashboardData();
   }, []);
 
   if (loading) {
@@ -86,8 +100,8 @@ export default function VolunteerDashboardPage() {
                 <Clock className="h-4 w-4 text-emerald-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-slate-900">0</div>
-                <p className="text-xs text-muted-foreground mt-1">Total volunteer hours</p>
+                <div className="text-2xl font-bold text-slate-900">{volunteer?.sessionsCompleted || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Total sessions completed</p>
               </CardContent>
             </Card>
           </div>
@@ -102,10 +116,26 @@ export default function VolunteerDashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {volunteer?.studentsAssigned && volunteer.studentsAssigned.length > 0 ? (
+                {students.length > 0 ? (
                   <div className="space-y-4">
-                     <p className="text-sm text-slate-500">You have {volunteer.studentsAssigned.length} assigned students.</p>
-                     {/* Student cards would generate here */}
+                     <p className="text-sm text-slate-500">You have {students.length} assigned students.</p>
+                     <div className="grid gap-4 sm:grid-cols-2">
+                        {students.map(student => (
+                           <div key={student.uid} className="flex flex-col border border-slate-200 rounded-lg p-4 bg-white shadow-sm">
+                              <div className="flex items-center gap-3 mb-3">
+                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                    {student.name.charAt(0)}
+                                 </div>
+                                 <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-slate-900 truncate">{student.name}</p>
+                                    <p className="text-xs text-slate-500 truncate flex items-center gap-1"><GraduationCap className="w-3 h-3"/> Grade {student.grade}</p>
+                                 </div>
+                              </div>
+                              <p className="text-xs font-semibold text-slate-600 mb-2 line-clamp-1">Subjects: <span className="text-slate-500 font-normal">{student.subjects?.join(', ') || 'Various'}</span></p>
+                              <Button size="sm" variant="secondary" className="w-full mt-auto">View Profile</Button>
+                           </div>
+                        ))}
+                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50/80 rounded-lg border border-dashed border-slate-300">
@@ -129,27 +159,10 @@ export default function VolunteerDashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                 <div className="space-y-3">
-                   {[1, 2].map(i => (
-                     <div key={i} className="p-3 border border-slate-200 rounded-md bg-white">
-                       <div className="flex justify-between items-start mb-2">
-                         <div>
-                           <p className="font-semibold text-sm">Class 8 Student</p>
-                           <p className="text-xs text-slate-500">Needs help with Mathematics</p>
-                         </div>
-                         <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium">95% Match</span>
-                       </div>
-                       <div className="flex gap-2 mt-3">
-                         <Button size="sm" className="w-full text-xs h-7">Accept</Button>
-                         <Button size="sm" variant="outline" className="w-full text-xs h-7">Ignore</Button>
-                       </div>
-                     </div>
-                   ))}
+                 <div className="flex flex-col items-center justify-center p-6 text-center border overflow-hidden rounded-lg bg-slate-50 border-slate-200">
+                    <div className="text-sm text-slate-500">No match requests right now. Your schedule is clear!</div>
                  </div>
               </CardContent>
-              <CardFooter className="pt-0">
-                 <Button variant="ghost" className="w-full text-xs text-primary">View all requests</Button>
-              </CardFooter>
             </Card>
           </div>
         </>

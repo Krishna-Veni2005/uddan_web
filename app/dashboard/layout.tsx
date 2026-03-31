@@ -4,14 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
-  BookOpen, 
-  LayoutDashboard, 
-  MessageSquare, 
-  Settings, 
-  Users, 
-  LogOut,
-  Menu,
-  X
+  BookOpen, LayoutDashboard, MessageSquare, Settings, Users, LogOut, Menu, X, Calendar, Wrench, 
+  Library, Bot, TrendingUp, Presentation, FolderEdit, Zap, BrainCircuit, Activity, Phone, FileText, ClipboardList
 } from "lucide-react";
 import Cookies from "js-cookie";
 import { auth } from "@/lib/firebase";
@@ -26,19 +20,38 @@ type SidebarLink = {
 };
 
 const studentLinks: SidebarLink[] = [
-  { name: "Dashboard", href: "/dashboard/student", icon: LayoutDashboard },
-  { name: "My Classes", href: "/dashboard/student/classes", icon: BookOpen },
-  { name: "My Tutors", href: "/dashboard/student/tutors", icon: Users },
-  { name: "Messages", href: "/dashboard/student/messages", icon: MessageSquare },
+  { name: "Home", href: "/dashboard/student", icon: LayoutDashboard },
+  { name: "My Sessions", href: "/dashboard/student/sessions", icon: Calendar },
+  { name: "Workshops", href: "/dashboard/student/workshops", icon: Presentation },
+  { name: "Resources", href: "/dashboard/student/resources", icon: Library },
+  { name: "AI Study Buddy", href: "/dashboard/student/study-buddy", icon: Bot },
+  { name: "My Portfolio", href: "/dashboard/student/portfolio", icon: TrendingUp },
   { name: "Settings", href: "/dashboard/student/settings", icon: Settings },
 ];
 
 const volunteerLinks: SidebarLink[] = [
-  { name: "Dashboard", href: "/dashboard/volunteer", icon: LayoutDashboard },
+  { name: "Home", href: "/dashboard/volunteer", icon: LayoutDashboard },
   { name: "My Students", href: "/dashboard/volunteer/students", icon: Users },
-  { name: "Requests", href: "/dashboard/volunteer/requests", icon: BookOpen },
-  { name: "Messages", href: "/dashboard/volunteer/messages", icon: MessageSquare },
+  { name: "My Sessions", href: "/dashboard/volunteer/sessions", icon: Calendar },
+  { name: "My Workshops", href: "/dashboard/volunteer/workshops", icon: Presentation },
+  { name: "Create Workshop", href: "/dashboard/volunteer/create-workshop", icon: FolderEdit },
+  { name: "Resource Studio", href: "/dashboard/volunteer/resource-studio", icon: Wrench },
+  { name: "AI Tools", href: "/dashboard/volunteer/ai-tools", icon: BrainCircuit },
+  { name: "My Impact", href: "/dashboard/volunteer/impact", icon: Zap },
   { name: "Settings", href: "/dashboard/volunteer/settings", icon: Settings },
+];
+
+const adminLinks: SidebarLink[] = [
+  { name: "Overview", href: "/dashboard/admin", icon: LayoutDashboard },
+  { name: "Students", href: "/dashboard/admin/students", icon: Users },
+  { name: "Volunteers", href: "/dashboard/admin/volunteers", icon: Users },
+  { name: "Assignments", href: "/dashboard/admin/assignments", icon: ClipboardList },
+  { name: "Workshops", href: "/dashboard/admin/workshops", icon: Presentation },
+  { name: "Analytics", href: "/dashboard/admin/analytics", icon: TrendingUp },
+  { name: "At-Risk", href: "/dashboard/admin/at-risk", icon: Activity },
+  { name: "Call Logs", href: "/dashboard/admin/call-logs", icon: Phone },
+  { name: "Reports", href: "/dashboard/admin/reports", icon: FileText },
+  { name: "Settings", href: "/dashboard/admin/settings", icon: Settings },
 ];
 
 export default function DashboardLayout({
@@ -53,7 +66,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     // Determine role from cookies on mount
-    const currentRole = Cookies.get("edubridge_role");
+    const currentRole = Cookies.get("edubridge_user_role");
     if (currentRole) {
       setRole(currentRole);
     }
@@ -62,8 +75,7 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      Cookies.remove("edubridge_token");
-      Cookies.remove("edubridge_role");
+      Cookies.remove("edubridge_user_role");
       toast.success("Logged out successfully");
       router.push("/auth/login");
     } catch (error) {
@@ -71,7 +83,7 @@ export default function DashboardLayout({
     }
   };
 
-  const navLinks = role === "volunteer" ? volunteerLinks : studentLinks;
+  const navLinks = role === "admin" ? adminLinks : role === "volunteer" ? volunteerLinks : studentLinks;
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden">
